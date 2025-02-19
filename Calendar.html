@@ -5,58 +5,90 @@
 <style>
 body {
   font-family: sans-serif;
-  background-color: #f4f4f4;
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   color: #333;
+  min-height: 100vh;
+}
+
+h1 {
+  text-align: center;
+  padding: 20px 0;
+  color: #2c3e50;
 }
 
 .calendar-container {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 10px;
-  max-width: 960px;
-  margin: 20px auto;
-  padding: 20px;
-  background-color: #fff;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
+  gap: 15px;
+  max-width: 1200px;
+  margin: 0 auto 40px;
+  padding: 25px;
+  background-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
 }
 
 .calendar-day {
   background-color: #fafafa;
   border-radius: 8px;
-  padding: 10px;
+  padding: 15px;
+  min-height: 200px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s;
+}
+
+.calendar-day:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .day-header {
   font-weight: bold;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
   text-transform: uppercase;
+  text-align: center;
+  padding-bottom: 5px;
+  border-bottom: 2px solid #e0e0e0;
 }
 
 .event-item {
-  margin-bottom: 10px;
-  padding: 10px;
+  margin-bottom: 12px;
+  padding: 12px;
   border-left: 5px solid;
   border-radius: 5px;
   background-color: #fff;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.event-item:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .event-title {
   font-weight: bold;
-  margin-bottom: 5px;
+  margin-bottom: 8px;
 }
 
+.no-events {
+  color: #9e9e9e;
+  font-style: italic;
+  text-align: center;
+  margin-top: 30px;
+}
 </style>
 </head>
 <body>
 
+<h1>Weekly Event Schedule</h1>
 <div class="calendar-container" id="calendar-container">
   <!-- Days will be inserted here -->
 </div>
 
 <script>
-// Example data. Replace with your eventData logic as needed.
+// Example data
 const eventData = {
   "postedEvents": [
     { "title": "2cob Nael Prog",       "leaderName": "Altair", "startTime": 1740099600, "endTime": 1740099600, "color": "183,28,28" },
@@ -69,7 +101,27 @@ const eventData = {
   ]
 };
 
-// 1. Group events by day (using the startTime value).
+// Helper function to get the start of the week containing the earliest event
+function getStartOfWeek(events) {
+  if (events.length === 0) {
+    const today = new Date();
+    const dayOfWeek = today.getDay();
+    const diff = today.getDate() - dayOfWeek;
+    return new Date(today.setDate(diff));
+  }
+  
+  let minTime = Number.MAX_SAFE_INTEGER;
+  events.forEach(e => {
+    if (e.startTime < minTime) minTime = e.startTime;
+  });
+  
+  const earliestDate = new Date(minTime * 1000);
+  const dayOfWeek = earliestDate.getDay();
+  const diff = earliestDate.getDate() - dayOfWeek;
+  return new Date(earliestDate.setDate(diff));
+}
+
+// Group events by day
 function groupEventsByDay(events) {
   const grouped = {};
   events.forEach(event => {
@@ -84,34 +136,18 @@ function groupEventsByDay(events) {
   return grouped;
 }
 
-// 2. Create a range of days from the earliest to the latest event.
-function getDayRange(events) {
-  if (events.length === 0) return [];
-  let minTime = events[0].startTime;
-  let maxTime = events[0].startTime;
-  events.forEach(e => {
-    if (e.startTime < minTime) minTime = e.startTime;
-    if (e.startTime > maxTime) maxTime = e.startTime;
-  });
-  const start = new Date(minTime * 1000);
-  const end = new Date(maxTime * 1000);
-  const dayRange = [];
-  let current = new Date(start);
-  while (current <= end) {
-    dayRange.push(new Date(current));
-    current.setDate(current.getDate() + 1);
-  }
-  return dayRange;
-}
-
-// 3. Render the calendar: each column represents a day in the range.
-function renderCalendar(events) {
+// Render the full week calendar
+function renderWeekCalendar(events) {
   const grouped = groupEventsByDay(events);
-  const range = getDayRange(events);
+  const startOfWeek = getStartOfWeek(events);
   const container = document.getElementById('calendar-container');
   container.innerHTML = '';
 
-  range.forEach(day => {
+  // Create 7 days starting from the start of the week
+  for (let i = 0; i < 7; i++) {
+    const day = new Date(startOfWeek);
+    day.setDate(day.getDate() + i);
+    
     const dayKey = day.toISOString().split('T')[0];
     const dayDiv = document.createElement('div');
     dayDiv.classList.add('calendar-day');
@@ -124,14 +160,16 @@ function renderCalendar(events) {
     dayDiv.appendChild(dayHeader);
 
     // Events for this day
-    if (grouped[dayKey]) {
+    if (grouped[dayKey] && grouped[dayKey].length > 0) {
       grouped[dayKey].forEach(event => {
         const eventItem = document.createElement('div');
         eventItem.classList.add('event-item');
         if (event.color) {
           const [r, g, b] = event.color.split(',');
           eventItem.style.borderColor = `rgb(${r}, ${g}, ${b})`;
+          eventItem.style.backgroundColor = `rgba(${r}, ${g}, ${b}, 0.05)`;
         }
+        
         const eventTitle = document.createElement('div');
         eventTitle.classList.add('event-title');
         eventTitle.textContent = event.title;
@@ -142,19 +180,25 @@ function renderCalendar(events) {
         eventItem.appendChild(eventLead);
 
         const timeText = document.createElement('div');
-        const start = new Date(event.startTime * 1000).toLocaleTimeString();
-        const end = new Date(event.endTime * 1000).toLocaleTimeString();
-        timeText.textContent = `Time: ${start} - ${end}`;
+        const eventTime = new Date(event.startTime * 1000);
+        timeText.textContent = `Time: ${eventTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
         eventItem.appendChild(timeText);
 
         dayDiv.appendChild(eventItem);
       });
+    } else {
+      // No events for this day
+      const noEvents = document.createElement('div');
+      noEvents.classList.add('no-events');
+      noEvents.textContent = 'No events scheduled';
+      dayDiv.appendChild(noEvents);
     }
+    
     container.appendChild(dayDiv);
-  });
+  }
 }
 
-renderCalendar(eventData.postedEvents);
+renderWeekCalendar(eventData.postedEvents);
 </script>
 
 </body>
