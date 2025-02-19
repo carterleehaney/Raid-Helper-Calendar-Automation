@@ -9,7 +9,10 @@ body {
   color: #333;
 }
 
-.container {
+.calendar-container {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
   max-width: 960px;
   margin: 20px auto;
   padding: 20px;
@@ -18,126 +21,140 @@ body {
   border-radius: 8px;
 }
 
-.event {
-  margin-bottom: 20px;
-  padding: 15px;
+.calendar-day {
+  background-color: #fafafa;
   border-radius: 8px;
+  padding: 10px;
+}
+
+.day-header {
+  font-weight: bold;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+.event-item {
+  margin-bottom: 10px;
+  padding: 10px;
+  border-left: 5px solid;
+  border-radius: 5px;
+  background-color: #fff;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-}
-
-.event-image {
-    max-width: 200px;
-    height: auto;
-    float: left;
-    margin-right: 15px;
-    border-radius: 8px;
-}
-
-.event-content {
-    overflow: hidden;
 }
 
 .event-title {
-  font-size: 1.2em;
   font-weight: bold;
   margin-bottom: 5px;
-}
-
-.event-leader {
-  font-style: italic;
-  margin-bottom: 10px;
-}
-
-.event-description {
-  margin-bottom: 10px;
-}
-
-.event-time {
-  font-size: 0.9em;
-  color: #777;
-}
-
-.event-signups {
-    font-size: 0.9em;
-    color: #555;
-}
-
-.event[data-color] {
-    border-left: 5px solid;
-    padding-left: 10px;
 }
 
 </style>
 </head>
 <body>
 
-<div class="container">
-  <h1>Scheduled Events</h1>
-
-  <div id="events-container">
-    </div>
+<div class="calendar-container" id="calendar-container">
+  <!-- Days will be inserted here -->
 </div>
 
 <script>
-  // Need to automate this later...
-  // eventData is the JSON returned from the endpoint
-  const eventData = {"pages":1,"eventsOverall":7,"eventsTransmitted":7,"currentPage":1,"postedEvents":[{"color":"183,28,28","description":"Progging Phase 2, once again, did you Know Nael has the wackiest Tells?","title":"2cob Nael Prog","templateId":"25","signUpCount":"8","leaderId":"700907337866805340","lastUpdated":1739978884,"leaderName":"Altair Astraros","imageUrl":"https://raid-helper.dev/uploads/1288597337979228190/3a379ced61f1f9006fe478522a165075.webp","closeTime":1740099600,"startTime":1740099600,"endTime":1740099600,"id":"1341605764325965896","channelId":"1288598385498259519"},{"color":"113,54,138","description":"Trying out the first criterion dungeon for my birthday~","title":"Another Sil'dihn Subterrane (Blind)","templateId":"25","signUpCount":"4","leaderId":"297527975589445643","lastUpdated":1739967268,"leaderName":"Glenn Andrews","imageUrl":"https://cdn.discordapp.com/attachments/1309322145448591363/1341617206777348179/Sild.png?ex=67b6a5e4&is=67b55464&hm=7a86ad052408b65a54a21d19a7a5301caee01f53d4ad686b7f34acd31bf0aa5c&","closeTime":1740171600,"startTime":1740171600,"endTime":1740171600,"id":"1341619279497265172","channelId":"1288598385498259519"},{"color":"255,0,0","description":"Beginners and new raiders welcome!! If we clear it fast we'll do another StB MiNE trial after","title":"Byakko Ex MiNE","templateId":"25","signUpCount":"7","leaderId":"745772510540202068","lastUpdated":1739919638,"leaderName":"Lady HD | Marilith","closeTime":1739919600,"startTime":1739919600,"endTime":1739919600,"id":"1340153955271049367","channelId":"1288598385498259519"},{"color":"171,71,188","description":"","title":"UCOB More Bahamut Prog","templateId":"25","signUpCount":"8","leaderId":"711707974430621787","lastUpdated":1739899199,"leaderName":"Yrcbry Ayzen","closeTime":1740092400,"startTime":1740092400,"endTime":1740092400,"id":"1341458573296795678","channelId":"1288598385498259519"},{"color":"113,54,138","description":"I'm back in the world of the living, after a week of pain and suffering I'm good to go. Tsunami has nothing on us, watch","title":"E3S attempt drei (i think)","templateId":"25","signUpCount":"5","leaderId":"261126871138172939","lastUpdated":1739647948,"leaderName":"Gyodo Tsuwamono","closeTime":1740177000,"startTime":1740177000,"endTime":1740177000,"id":"1340324875201675346","channelId":"1288598385498259519"},{"color":"33,150,243","description":"clowning around at the speed of sound","title":"OMEGA 8 SAVAGE MINE","templateId":"25","signUpCount":"8","leaderId":"783455047698481163","lastUpdated":1739581973,"leaderName":"Dantas Kiryu (Marilith)","imageUrl":"https://i.ytimg.com/vi/tWBnNK8MoR4/maxresdefault.jpg","closeTime":1740006000,"startTime":1740006000,"endTime":1740006000,"id":"1340121741615173682","channelId":"1288598385498259519"},{"color":"255,0,0","description":"Some Phase 1 cleanup and then phase 2 Prog. Also did you know Nael has the wackiest tells?","title":"2Cob","templateId":"25","signUpCount":"6","leaderId":"700907337866805340","lastUpdated":1739926812,"leaderName":"Altair Astraros","closeTime":1739926800,"startTime":1739926800,"endTime":1739926800,"id":"1339798465806467228","channelId":"1288598385498259519"}]};
+// Example data. Replace with your eventData logic as needed.
+const eventData = {
+  "postedEvents": [
+    { "title": "2cob Nael Prog",       "leaderName": "Altair", "startTime": 1740099600, "endTime": 1740099600, "color": "183,28,28" },
+    { "title": "Another Sil'dihn",     "leaderName": "Glenn",  "startTime": 1740171600, "endTime": 1740171600, "color": "113,54,138" },
+    { "title": "Byakko Ex MiNE",       "leaderName": "Lady",   "startTime": 1739919600, "endTime": 1739919600, "color": "255,0,0" },
+    { "title": "UCOB More Bahamut",    "leaderName": "Yrcbry", "startTime": 1740092400, "endTime": 1740092400, "color": "171,71,188" },
+    { "title": "E3S attempt drei",     "leaderName": "Gyodo",  "startTime": 1740177000, "endTime": 1740177000, "color": "113,54,138" },
+    { "title": "OMEGA 8 SAVAGE",       "leaderName": "Dantas", "startTime": 1740006000, "endTime": 1740006000, "color": "33,150,243" },
+    { "title": "2Cob",                 "leaderName": "Altair", "startTime": 1739926800, "endTime": 1739926800, "color": "255,0,0" }
+  ]
+};
 
-
-  const eventsContainer = document.getElementById('events-container');
-
-  eventData.postedEvents.forEach(event => {
-    const eventDiv = document.createElement('div');
-    eventDiv.classList.add('event');
-    eventDiv.setAttribute('data-color', event.color);
-
-    if (event.imageUrl) {
-        const image = document.createElement('img');
-        image.src = event.imageUrl;
-        image.alt = event.title;
-        image.classList.add('event-image');
-        eventDiv.appendChild(image);
+// 1. Group events by day (using the startTime value).
+function groupEventsByDay(events) {
+  const grouped = {};
+  events.forEach(event => {
+    const date = new Date(event.startTime * 1000);
+    // Convert date to an ISO-like string: 'YYYY-MM-DD'
+    const dayKey = date.toISOString().split('T')[0];
+    if (!grouped[dayKey]) {
+      grouped[dayKey] = [];
     }
-
-    const contentDiv = document.createElement('div');
-    contentDiv.classList.add('event-content');
-    eventDiv.appendChild(contentDiv);
-
-    const titleDiv = document.createElement('div');
-    titleDiv.classList.add('event-title');
-    titleDiv.textContent = event.title;
-    contentDiv.appendChild(titleDiv);
-
-    const leaderDiv = document.createElement('div');
-    leaderDiv.classList.add('event-leader');
-    leaderDiv.textContent = `Leader: ${event.leaderName}`;
-    contentDiv.appendChild(leaderDiv);
-
-    const descriptionDiv = document.createElement('div');
-    descriptionDiv.classList.add('event-description');
-    descriptionDiv.textContent = event.description;
-    contentDiv.appendChild(descriptionDiv);
-
-    const startTime = new Date(event.startTime * 1000);
-    const endTime = new Date(event.endTime * 1000);
-    const timeDiv = document.createElement('div');
-    timeDiv.classList.add('event-time');
-    timeDiv.textContent = `Start: ${startTime.toLocaleString()}, End: ${endTime.toLocaleString()}`;
-    contentDiv.appendChild(timeDiv);
-
-    const signupsDiv = document.createElement('div');
-    signupsDiv.classList.add('event-signups');
-    signupsDiv.textContent = `Sign-ups: ${event.signUpCount}`;
-    contentDiv.appendChild(signupsDiv);
-
-    if (event.color) {
-        const rgb = event.color.split(',');
-        eventDiv.style.borderColor = `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
-    }
-
-    eventsContainer.appendChild(eventDiv);
+    grouped[dayKey].push(event);
   });
+  return grouped;
+}
+
+// 2. Create a range of days from the earliest to the latest event.
+function getDayRange(events) {
+  if (events.length === 0) return [];
+  let minTime = events[0].startTime;
+  let maxTime = events[0].startTime;
+  events.forEach(e => {
+    if (e.startTime < minTime) minTime = e.startTime;
+    if (e.startTime > maxTime) maxTime = e.startTime;
+  });
+  const start = new Date(minTime * 1000);
+  const end = new Date(maxTime * 1000);
+  const dayRange = [];
+  let current = new Date(start);
+  while (current <= end) {
+    dayRange.push(new Date(current));
+    current.setDate(current.getDate() + 1);
+  }
+  return dayRange;
+}
+
+// 3. Render the calendar: each column represents a day in the range.
+function renderCalendar(events) {
+  const grouped = groupEventsByDay(events);
+  const range = getDayRange(events);
+  const container = document.getElementById('calendar-container');
+  container.innerHTML = '';
+
+  range.forEach(day => {
+    const dayKey = day.toISOString().split('T')[0];
+    const dayDiv = document.createElement('div');
+    dayDiv.classList.add('calendar-day');
+
+    // Day header (e.g., "Thu, Feb 20")
+    const dateOptions = { weekday: 'short', month: 'short', day: 'numeric' };
+    const dayHeader = document.createElement('div');
+    dayHeader.classList.add('day-header');
+    dayHeader.textContent = day.toLocaleDateString(undefined, dateOptions);
+    dayDiv.appendChild(dayHeader);
+
+    // Events for this day
+    if (grouped[dayKey]) {
+      grouped[dayKey].forEach(event => {
+        const eventItem = document.createElement('div');
+        eventItem.classList.add('event-item');
+        if (event.color) {
+          const [r, g, b] = event.color.split(',');
+          eventItem.style.borderColor = `rgb(${r}, ${g}, ${b})`;
+        }
+        const eventTitle = document.createElement('div');
+        eventTitle.classList.add('event-title');
+        eventTitle.textContent = event.title;
+        eventItem.appendChild(eventTitle);
+
+        const eventLead = document.createElement('div');
+        eventLead.textContent = `Leader: ${event.leaderName}`;
+        eventItem.appendChild(eventLead);
+
+        const timeText = document.createElement('div');
+        const start = new Date(event.startTime * 1000).toLocaleTimeString();
+        const end = new Date(event.endTime * 1000).toLocaleTimeString();
+        timeText.textContent = `Time: ${start} - ${end}`;
+        eventItem.appendChild(timeText);
+
+        dayDiv.appendChild(eventItem);
+      });
+    }
+    container.appendChild(dayDiv);
+  });
+}
+
+renderCalendar(eventData.postedEvents);
 </script>
 
 </body>
