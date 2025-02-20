@@ -73,6 +73,20 @@ h1 {
   font-size: 0.9rem;
 }
 
+.current-day {
+  color: #63b3ed;
+  position: relative;
+}
+
+.current-day::after {
+  content: '• Today';
+  display: block;
+  font-size: 0.7rem;
+  font-weight: normal;
+  letter-spacing: 0;
+  margin-top: 4px;
+}
+
 .event-item {
   margin-bottom: 14px;
   padding: 14px;
@@ -94,10 +108,34 @@ h1 {
   font-size: 1.05rem;
 }
 
-.event-leader, .event-time {
+.event-leader, .event-time, .event-description {
   color: var(--text-secondary);
   font-size: 0.9rem;
   margin-top: 5px;
+}
+
+.event-description {
+  font-style: italic;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-color);
+  font-size: 0.85rem;
+  word-break: break-word;
+}
+
+.event-stats {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.event-signups {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 2px 6px;
+  border-radius: 4px;
 }
 
 .no-events {
@@ -112,6 +150,13 @@ h1 {
   text-align: center;
   padding: 20px;
   color: var(--text-secondary);
+}
+
+.week-info {
+  text-align: center;
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+  font-size: 0.9rem;
 }
 
 @media (max-width: 900px) {
@@ -130,6 +175,7 @@ h1 {
 <body>
 
 <h1>Weekly Event Schedule</h1>
+<div id="week-info" class="week-info"></div>
 <div id="loading-indicator">Loading events...</div>
 <div class="calendar-container" id="calendar-container" style="display: none;">
   <!-- Days will be inserted here -->
@@ -139,61 +185,99 @@ h1 {
 // Function to fetch event data from a JSON file
 async function fetchEventData() {
   try {
-    // Replace 'events.json' with the path to your JSON file
+    // Fetch the JSON file
     const response = await fetch('events.json');
     if (!response.ok) {
       throw new Error(`HTTP error: ${response.status}`);
     }
+    
     const data = await response.json();
-    return data.postedEvents || [];
+    
+    // Extract postedEvents array based on the provided JSON structure
+    if (data.postedEvents && Array.isArray(data.postedEvents)) {
+      console.log(`Successfully loaded ${data.postedEvents.length} events`);
+      return data.postedEvents;
+    } else {
+      console.warn('Could not find postedEvents array in JSON data');
+      // Fallback to searching for any event-like array
+      for (const key in data) {
+        if (Array.isArray(data[key]) && data[key].length > 0 && data[key][0].title && data[key][0].startTime) {
+          return data[key];
+        }
+      }
+      return [];
+    }
   } catch (error) {
     console.error('Could not fetch event data:', error);
     // Fallback to sample data if fetch fails
     return [
-      { "title": "2cob Nael Prog", "leaderName": "Altair", "startTime": 1740099600, "endTime": 1740099600, "color": "183,28,28" },
-      { "title": "Another Sil'dihn", "leaderName": "Glenn", "startTime": 1740171600, "endTime": 1740171600, "color": "113,54,138" },
-      { "title": "Byakko Ex MiNE", "leaderName": "Lady", "startTime": 1739919600, "endTime": 1739919600, "color": "255,0,0" },
-      { "title": "UCOB More Bahamut", "leaderName": "Yrcbry", "startTime": 1740092400, "endTime": 1740092400, "color": "171,71,188" },
-      { "title": "E3S attempt drei", "leaderName": "Gyodo", "startTime": 1740177000, "endTime": 1740177000, "color": "113,54,138" },
-      { "title": "OMEGA 8 SAVAGE", "leaderName": "Dantas", "startTime": 1740006000, "endTime": 1740006000, "color": "33,150,243" },
-      { "title": "2Cob", "leaderName": "Altair", "startTime": 1739926800, "endTime": 1739926800, "color": "255,0,0" }
+      {"color":"33,150,243","description":"if a clown honks in a circus and no one is around to hear it, does it make a sound?","title":"OMEGA 8 SAVAGE MINE","templateId":"25","signUpCount":"8","leaderId":"783455047698481163","lastUpdated":1740015234,"leaderName":"Dantas Kiryu (Marilith)","startTime":1740610800,"endTime":1740610800},
+      {"color":"209,211,57","description":"gruh","title":"The Cloud Deck Extreme MINE","templateId":"25","signUpCount":"3","leaderId":"878052056458493973","lastUpdated":1740005946,"leaderName":"LaceyLopp","startTime":1740261600,"endTime":1740261600},
+      {"color":"113,54,138","description":"We going to war 🪖","title":"Bozjan Front Gang","templateId":"25","signUpCount":"3","leaderId":"1182074746079289366","lastUpdated":1740005097,"leaderName":"Dantay Blosuum","startTime":1740096000,"endTime":1740096000},
+      {"color":"183,28,28","description":"Progging Phase 2, once again, did you Know Nael has the wackiest Tells?","title":"2cob Nael Prog","templateId":"25","signUpCount":"8","leaderId":"700907337866805340","lastUpdated":1739978884,"leaderName":"Altair Astraros","startTime":1740099600,"endTime":1740099600},
+      {"color":"113,54,138","description":"Trying out the first criterion dungeon for my birthday~","title":"Another Sil'dihn Subterrane (Blind)","templateId":"25","signUpCount":"4","leaderId":"297527975589445643","lastUpdated":1739967268,"leaderName":"Glenn Andrews","startTime":1740171600,"endTime":1740171600},
+      {"color":"171,71,188","description":"","title":"UCOB More Bahamut Prog","templateId":"25","signUpCount":"8","leaderId":"711707974430621787","lastUpdated":1739899199,"leaderName":"Yrcbry Ayzen","startTime":1740092400,"endTime":1740092400},
+      {"color":"113,54,138","description":"I'm back in the world of the living, after a week of pain and suffering I'm good to go. Tsunami has nothing on us, watch","title":"E3S attempt drei (i think)","templateId":"25","signUpCount":"5","leaderId":"261126871138172939","lastUpdated":1739647948,"leaderName":"Gyodo Tsuwamono","startTime":1740177000,"endTime":1740177000}
     ];
   }
 }
 
-// Helper function to get the start of the week containing the earliest event
-function getStartOfWeek(events) {
-  if (events.length === 0) {
-    const today = new Date();
-    const dayOfWeek = today.getDay();
-    const diff = today.getDate() - dayOfWeek;
-    return new Date(today.setDate(diff));
-  }
+// Get the current week's start and end timestamps
+function getCurrentWeekBoundaries() {
+  const now = new Date();
   
-  let minTime = Number.MAX_SAFE_INTEGER;
-  events.forEach(e => {
-    if (e.startTime < minTime) minTime = e.startTime;
+  // Get the day of the week (0 = Sunday, 6 = Saturday)
+  const dayOfWeek = now.getDay();
+  
+  // Calculate the date of Sunday (start of week)
+  const startOfWeek = new Date(now);
+  startOfWeek.setDate(now.getDate() - dayOfWeek);
+  startOfWeek.setHours(0, 0, 0, 0);
+  
+  // Calculate the date of Saturday (end of week)
+  const endOfWeek = new Date(startOfWeek);
+  endOfWeek.setDate(startOfWeek.getDate() + 6);
+  endOfWeek.setHours(23, 59, 59, 999);
+  
+  return {
+    start: Math.floor(startOfWeek.getTime() / 1000),
+    end: Math.floor(endOfWeek.getTime() / 1000),
+    startDate: startOfWeek,
+    endDate: endOfWeek
+  };
+}
+
+// Filter events to only show current week events
+function filterCurrentWeekEvents(events) {
+  const { start, end } = getCurrentWeekBoundaries();
+  
+  return events.filter(event => {
+    return event.startTime >= start && event.startTime <= end;
   });
-  
-  const earliestDate = new Date(minTime * 1000);
-  const dayOfWeek = earliestDate.getDay();
-  const diff = earliestDate.getDate() - dayOfWeek;
-  return new Date(earliestDate.setDate(diff));
 }
 
 // Group events by day
 function groupEventsByDay(events) {
   const grouped = {};
+  
   events.forEach(event => {
     const date = new Date(event.startTime * 1000);
     // Convert date to an ISO-like string: 'YYYY-MM-DD'
     const dayKey = date.toISOString().split('T')[0];
+    
     if (!grouped[dayKey]) {
       grouped[dayKey] = [];
     }
+    
     grouped[dayKey].push(event);
   });
+  
   return grouped;
+}
+
+// Sort events by start time
+function sortEventsByTime(events) {
+  return events.sort((a, b) => a.startTime - b.startTime);
 }
 
 // Enhance color for dark mode
@@ -212,16 +296,55 @@ function enhanceColorForDarkMode(colorStr) {
   return `${Math.round(brightenedR)},${Math.round(brightenedG)},${Math.round(brightenedB)}`;
 }
 
+// Format time in a user-friendly way
+function formatEventTime(timestamp) {
+  const date = new Date(timestamp * 1000);
+  return date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+}
+
+// Format date range for week info
+function formatDateRange(startDate, endDate) {
+  const options = { month: 'short', day: 'numeric' };
+  return `${startDate.toLocaleDateString(undefined, options)} - ${endDate.toLocaleDateString(undefined, options)}, ${endDate.getFullYear()}`;
+}
+
+// Check if a date is today
+function isToday(date) {
+  const today = new Date();
+  return date.getDate() === today.getDate() &&
+         date.getMonth() === today.getMonth() &&
+         date.getFullYear() === today.getFullYear();
+}
+
+// Truncate text if it's too long
+function truncateText(text, maxLength = 100) {
+  if (!text) return '';
+  if (text.length <= maxLength) return text;
+  return text.substring(0, maxLength) + '...';
+}
+
 // Render the full week calendar
 function renderWeekCalendar(events) {
-  const grouped = groupEventsByDay(events);
-  const startOfWeek = getStartOfWeek(events);
+  // Filter events to only show current week
+  const currentWeekEvents = filterCurrentWeekEvents(events);
+  
+  // Group by day and sort
+  const grouped = groupEventsByDay(currentWeekEvents);
+  
+  // Get week boundaries for display
+  const weekBoundaries = getCurrentWeekBoundaries();
+  const startOfWeek = weekBoundaries.startDate;
+  
+  // Display week info
+  const weekInfoElement = document.getElementById('week-info');
+  weekInfoElement.textContent = `Showing events for week of ${formatDateRange(weekBoundaries.startDate, weekBoundaries.endDate)}`;
+  
   const container = document.getElementById('calendar-container');
   const loadingIndicator = document.getElementById('loading-indicator');
   
   container.innerHTML = '';
 
-  // Create 7 days starting from the start of the week
+  // Create 7 days starting from Sunday
   for (let i = 0; i < 7; i++) {
     const day = new Date(startOfWeek);
     day.setDate(day.getDate() + i);
@@ -234,12 +357,21 @@ function renderWeekCalendar(events) {
     const dateOptions = { weekday: 'short', month: 'short', day: 'numeric' };
     const dayHeader = document.createElement('div');
     dayHeader.classList.add('day-header');
+    
+    // Highlight current day
+    if (isToday(day)) {
+      dayHeader.classList.add('current-day');
+    }
+    
     dayHeader.textContent = day.toLocaleDateString(undefined, dateOptions);
     dayDiv.appendChild(dayHeader);
 
     // Events for this day
     if (grouped[dayKey] && grouped[dayKey].length > 0) {
-      grouped[dayKey].forEach(event => {
+      // Sort events by time
+      const sortedEvents = sortEventsByTime(grouped[dayKey]);
+      
+      sortedEvents.forEach(event => {
         const eventItem = document.createElement('div');
         eventItem.classList.add('event-item');
         
@@ -255,16 +387,36 @@ function renderWeekCalendar(events) {
         eventTitle.textContent = event.title;
         eventItem.appendChild(eventTitle);
 
-        const eventLead = document.createElement('div');
-        eventLead.classList.add('event-leader');
-        eventLead.textContent = `Leader: ${event.leaderName}`;
-        eventItem.appendChild(eventLead);
+        if (event.leaderName) {
+          const eventLead = document.createElement('div');
+          eventLead.classList.add('event-leader');
+          eventLead.textContent = `Leader: ${event.leaderName}`;
+          eventItem.appendChild(eventLead);
+        }
 
         const timeText = document.createElement('div');
         timeText.classList.add('event-time');
-        const eventTime = new Date(event.startTime * 1000);
-        timeText.textContent = `Time: ${eventTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+        timeText.textContent = `Time: ${formatEventTime(event.startTime)}`;
         eventItem.appendChild(timeText);
+
+        // Add sign-up stats if available
+        if (event.signUpCount) {
+          const eventStats = document.createElement('div');
+          eventStats.classList.add('event-stats');
+          const signupSpan = document.createElement('span');
+          signupSpan.classList.add('event-signups');
+          signupSpan.textContent = `${event.signUpCount} signed up`;
+          eventStats.appendChild(signupSpan);
+          eventItem.appendChild(eventStats);
+        }
+        
+        // Add description if available
+        if (event.description && event.description.trim()) {
+          const descriptionText = document.createElement('div');
+          descriptionText.classList.add('event-description');
+          descriptionText.textContent = truncateText(event.description, 150);
+          eventItem.appendChild(descriptionText);
+        }
 
         dayDiv.appendChild(eventItem);
       });
@@ -286,12 +438,17 @@ function renderWeekCalendar(events) {
 
 // Main function to initialize the calendar
 async function initCalendar() {
-  const events = await fetchEventData();
-  renderWeekCalendar(events);
+  try {
+    const events = await fetchEventData();
+    renderWeekCalendar(events);
+  } catch (error) {
+    console.error('Failed to initialize calendar:', error);
+    document.getElementById('loading-indicator').textContent = 'Failed to load events. Please try again later.';
+  }
 }
 
-// Start the application
-initCalendar();
+// Start the application when DOM is loaded
+document.addEventListener('DOMContentLoaded', initCalendar);
 </script>
 
 </body>
