@@ -185,42 +185,38 @@ h1 {
 // Function to fetch event data from a JSON file
 async function fetchEventData() {
   try {
-    // Fetch the JSON file
+    console.log('Attempting to fetch events.json...');
     const response = await fetch('events.json');
+    
     if (!response.ok) {
-      throw new Error(`HTTP error: ${response.status}`);
+      throw new Error(`HTTP error: ${response.status} ${response.statusText}`);
     }
     
-    const data = await response.json();
+    console.log('Successfully fetched events.json, parsing response...');
+    const contentType = response.headers.get('content-type');
+    console.log('Content-Type:', contentType);
     
-    // Extract postedEvents array based on the provided JSON structure
+    const data = await response.json();
+    console.log('Parsed JSON data:', data);
+    
     if (data.postedEvents && Array.isArray(data.postedEvents)) {
       console.log(`Successfully loaded ${data.postedEvents.length} events`);
       return data.postedEvents;
     } else {
       console.warn('Could not find postedEvents array in JSON data');
-      // Fallback to searching for any event-like array
-      for (const key in data) {
-        if (Array.isArray(data[key]) && data[key].length > 0 && data[key][0].title && data[key][0].startTime) {
-          return data[key];
-        }
-      }
+      console.log('Available data keys:', Object.keys(data));
       return [];
     }
   } catch (error) {
-    console.error('Could not fetch event data:', error);
-    // Fallback to sample data if fetch fails
-    return [
-      {"color":"33,150,243","description":"if a clown honks in a circus and no one is around to hear it, does it make a sound?","title":"OMEGA 8 SAVAGE MINE","templateId":"25","signUpCount":"8","leaderId":"783455047698481163","lastUpdated":1740015234,"leaderName":"Dantas Kiryu (Marilith)","startTime":1740610800,"endTime":1740610800},
-      {"color":"209,211,57","description":"gruh","title":"The Cloud Deck Extreme MINE","templateId":"25","signUpCount":"3","leaderId":"878052056458493973","lastUpdated":1740005946,"leaderName":"LaceyLopp","startTime":1740261600,"endTime":1740261600},
-      {"color":"113,54,138","description":"We going to war 🪖","title":"Bozjan Front Gang","templateId":"25","signUpCount":"3","leaderId":"1182074746079289366","lastUpdated":1740005097,"leaderName":"Dantay Blosuum","startTime":1740096000,"endTime":1740096000},
-      {"color":"183,28,28","description":"Progging Phase 2, once again, did you Know Nael has the wackiest Tells?","title":"2cob Nael Prog","templateId":"25","signUpCount":"8","leaderId":"700907337866805340","lastUpdated":1739978884,"leaderName":"Altair Astraros","startTime":1740099600,"endTime":1740099600},
-      {"color":"113,54,138","description":"Trying out the first criterion dungeon for my birthday~","title":"Another Sil'dihn Subterrane (Blind)","templateId":"25","signUpCount":"4","leaderId":"297527975589445643","lastUpdated":1739967268,"leaderName":"Glenn Andrews","startTime":1740171600,"endTime":1740171600},
-      {"color":"171,71,188","description":"","title":"UCOB More Bahamut Prog","templateId":"25","signUpCount":"8","leaderId":"711707974430621787","lastUpdated":1739899199,"leaderName":"Yrcbry Ayzen","startTime":1740092400,"endTime":1740092400},
-      {"color":"113,54,138","description":"I'm back in the world of the living, after a week of pain and suffering I'm good to go. Tsunami has nothing on us, watch","title":"E3S attempt drei (i think)","templateId":"25","signUpCount":"5","leaderId":"261126871138172939","lastUpdated":1739647948,"leaderName":"Gyodo Tsuwamono","startTime":1740177000,"endTime":1740177000}
-    ];
+    console.error('Error loading events:', error);
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack
+    });
+    return [];
   }
 }
+
 
 // Get the current week's start and end timestamps
 function getCurrentWeekBoundaries() {
