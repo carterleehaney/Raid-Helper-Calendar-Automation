@@ -49,8 +49,8 @@ h1 {
 .calendar-day {
   background-color: var(--card-bg);
   border-radius: 12px;
-  padding: 18px;
-  min-height: 200px;
+  padding: 12px;
+  min-height: 150px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
   border: 1px solid var(--border-color);
@@ -88,48 +88,43 @@ h1 {
 }
 
 .event-item {
-  margin-bottom: 14px;
-  padding: 14px;
-  border-left: 5px solid;
-  border-radius: 8px;
+  margin-bottom: 8px;
+  padding: 8px 12px;
+  border-left: 3px solid;
+  border-radius: 6px;
   background-color: var(--event-bg);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   transition: all 0.2s ease;
+  position: relative;
+  min-height: 45px;
 }
 
 .event-item:hover {
   box-shadow: var(--event-hover-shadow);
-  transform: translateX(2px);
+  transform: translateX(1px);
 }
 
 .event-title {
-  font-weight: bold;
-  margin-bottom: 8px;
-  font-size: 1.05rem;
-}
-
-.event-leader, .event-time, .event-description {
-  color: var(--text-secondary);
+  font-weight: 600;
   font-size: 0.9rem;
-  margin-top: 5px;
+  margin-bottom: 4px;
+  padding-right: 40px;
 }
 
-.event-description {
-  font-style: italic;
-  margin-top: 8px;
-  padding-top: 8px;
-  border-top: 1px solid var(--border-color);
-  font-size: 0.85rem;
-  word-break: break-word;
+.event-time {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  position: absolute;
+  bottom: 8px;
+  left: 12px;
 }
 
 .event-stats {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 8px;
+  position: absolute;
+  bottom: 8px;
+  right: 12px;
+  margin: 0;
   font-size: 0.8rem;
-  color: var(--text-secondary);
 }
 
 .event-signups {
@@ -142,7 +137,7 @@ h1 {
   color: var(--empty-event-color);
   font-style: italic;
   text-align: center;
-  margin-top: 50px;
+  margin-top: 20px;
   font-size: 0.9rem;
 }
 
@@ -182,55 +177,27 @@ h1 {
 </div>
 
 <script>
-// Function to fetch event data from a JSON file
 async function fetchEventData() {
   try {
-    console.log('Attempting to fetch events.json...');
     const response = await fetch('events.json');
-    
     if (!response.ok) {
-      throw new Error(`HTTP error: ${response.status} ${response.statusText}`);
+      throw new Error(`HTTP error: ${response.status}`);
     }
-    
-    console.log('Successfully fetched events.json, parsing response...');
-    const contentType = response.headers.get('content-type');
-    console.log('Content-Type:', contentType);
-    
     const data = await response.json();
-    console.log('Parsed JSON data:', data);
-    
-    if (data.postedEvents && Array.isArray(data.postedEvents)) {
-      console.log(`Successfully loaded ${data.postedEvents.length} events`);
-      return data.postedEvents;
-    } else {
-      console.warn('Could not find postedEvents array in JSON data');
-      console.log('Available data keys:', Object.keys(data));
-      return [];
-    }
+    return data.postedEvents || [];
   } catch (error) {
     console.error('Error loading events:', error);
-    console.error('Error details:', {
-      message: error.message,
-      stack: error.stack
-    });
     return [];
   }
 }
 
-
-// Get the current week's start and end timestamps
 function getCurrentWeekBoundaries() {
   const now = new Date();
-  
-  // Get the day of the week (0 = Sunday, 6 = Saturday)
   const dayOfWeek = now.getDay();
-  
-  // Calculate the date of Sunday (start of week)
   const startOfWeek = new Date(now);
   startOfWeek.setDate(now.getDate() - dayOfWeek);
   startOfWeek.setHours(0, 0, 0, 0);
   
-  // Calculate the date of Saturday (end of week)
   const endOfWeek = new Date(startOfWeek);
   endOfWeek.setDate(startOfWeek.getDate() + 6);
   endOfWeek.setHours(23, 59, 59, 999);
@@ -243,68 +210,43 @@ function getCurrentWeekBoundaries() {
   };
 }
 
-// Filter events to only show current week events
 function filterCurrentWeekEvents(events) {
   const { start, end } = getCurrentWeekBoundaries();
-  
-  return events.filter(event => {
-    return event.startTime >= start && event.startTime <= end;
-  });
+  return events.filter(event => event.startTime >= start && event.startTime <= end);
 }
 
-// Group events by day
 function groupEventsByDay(events) {
   const grouped = {};
-  
   events.forEach(event => {
     const date = new Date(event.startTime * 1000);
-    // Convert date to an ISO-like string: 'YYYY-MM-DD'
     const dayKey = date.toISOString().split('T')[0];
-    
     if (!grouped[dayKey]) {
       grouped[dayKey] = [];
     }
-    
     grouped[dayKey].push(event);
   });
-  
   return grouped;
 }
 
-// Sort events by start time
 function sortEventsByTime(events) {
   return events.sort((a, b) => a.startTime - b.startTime);
 }
 
-// Enhance color for dark mode
 function enhanceColorForDarkMode(colorStr) {
   if (!colorStr) return "120,120,120";
-  
-  // Parse RGB values
   const [r, g, b] = colorStr.split(',').map(Number);
-  
-  // Increase brightness for dark mode visibility
   const brightenFactor = 0.7;
   const brightenedR = Math.min(255, r + (255 - r) * brightenFactor);
   const brightenedG = Math.min(255, g + (255 - g) * brightenFactor);
   const brightenedB = Math.min(255, b + (255 - b) * brightenFactor);
-  
   return `${Math.round(brightenedR)},${Math.round(brightenedG)},${Math.round(brightenedB)}`;
 }
 
-// Format time in a user-friendly way
-function formatEventTime(timestamp) {
-  const date = new Date(timestamp * 1000);
-  return date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-}
-
-// Format date range for week info
 function formatDateRange(startDate, endDate) {
   const options = { month: 'short', day: 'numeric' };
   return `${startDate.toLocaleDateString(undefined, options)} - ${endDate.toLocaleDateString(undefined, options)}, ${endDate.getFullYear()}`;
 }
 
-// Check if a date is today
 function isToday(date) {
   const today = new Date();
   return date.getDate() === today.getDate() &&
@@ -312,26 +254,12 @@ function isToday(date) {
          date.getFullYear() === today.getFullYear();
 }
 
-// Truncate text if it's too long
-function truncateText(text, maxLength = 100) {
-  if (!text) return '';
-  if (text.length <= maxLength) return text;
-  return text.substring(0, maxLength) + '...';
-}
-
-// Render the full week calendar
 function renderWeekCalendar(events) {
-  // Filter events to only show current week
   const currentWeekEvents = filterCurrentWeekEvents(events);
-  
-  // Group by day and sort
   const grouped = groupEventsByDay(currentWeekEvents);
-  
-  // Get week boundaries for display
   const weekBoundaries = getCurrentWeekBoundaries();
   const startOfWeek = weekBoundaries.startDate;
   
-  // Display week info
   const weekInfoElement = document.getElementById('week-info');
   weekInfoElement.textContent = `Showing events for week of ${formatDateRange(weekBoundaries.startDate, weekBoundaries.endDate)}`;
   
@@ -340,31 +268,24 @@ function renderWeekCalendar(events) {
   
   container.innerHTML = '';
 
-  // Create 7 days starting from Sunday
   for (let i = 0; i < 7; i++) {
     const day = new Date(startOfWeek);
     day.setDate(day.getDate() + i);
-    
     const dayKey = day.toISOString().split('T')[0];
+    
     const dayDiv = document.createElement('div');
     dayDiv.classList.add('calendar-day');
 
-    // Day header (e.g., "Thu, Feb 20")
-    const dateOptions = { weekday: 'short', month: 'short', day: 'numeric' };
     const dayHeader = document.createElement('div');
     dayHeader.classList.add('day-header');
-    
-    // Highlight current day
     if (isToday(day)) {
       dayHeader.classList.add('current-day');
     }
-    
-    dayHeader.textContent = day.toLocaleDateString(undefined, dateOptions);
+    dayHeader.textContent = day.toLocaleDateString(undefined, 
+      { weekday: 'short', month: 'short', day: 'numeric' });
     dayDiv.appendChild(dayHeader);
 
-    // Events for this day
     if (grouped[dayKey] && grouped[dayKey].length > 0) {
-      // Sort events by time
       const sortedEvents = sortEventsByTime(grouped[dayKey]);
       
       sortedEvents.forEach(event => {
@@ -375,7 +296,7 @@ function renderWeekCalendar(events) {
           const enhancedColor = enhanceColorForDarkMode(event.color);
           const [r, g, b] = enhancedColor.split(',');
           eventItem.style.borderColor = `rgb(${r}, ${g}, ${b})`;
-          eventItem.style.boxShadow = `0 3px 8px rgba(${r}, ${g}, ${b}, 0.2), 0 2px 5px rgba(0, 0, 0, 0.3)`;
+          eventItem.style.boxShadow = `0 2px 4px rgba(${r}, ${g}, ${b}, 0.2)`;
         }
         
         const eventTitle = document.createElement('div');
@@ -383,41 +304,29 @@ function renderWeekCalendar(events) {
         eventTitle.textContent = event.title;
         eventItem.appendChild(eventTitle);
 
-        if (event.leaderName) {
-          const eventLead = document.createElement('div');
-          eventLead.classList.add('event-leader');
-          eventLead.textContent = `Leader: ${event.leaderName}`;
-          eventItem.appendChild(eventLead);
-        }
-
         const timeText = document.createElement('div');
         timeText.classList.add('event-time');
-        timeText.textContent = `Time: ${formatEventTime(event.startTime)}`;
+        const timeWithZone = new Date(event.startTime * 1000).toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit',
+          timeZoneName: 'short'
+        });
+        timeText.textContent = timeWithZone;
         eventItem.appendChild(timeText);
 
-        // Add sign-up stats if available
         if (event.signUpCount) {
           const eventStats = document.createElement('div');
           eventStats.classList.add('event-stats');
           const signupSpan = document.createElement('span');
           signupSpan.classList.add('event-signups');
-          signupSpan.textContent = `${event.signUpCount} signed up`;
+          signupSpan.textContent = `${event.signUpCount}`;
           eventStats.appendChild(signupSpan);
           eventItem.appendChild(eventStats);
-        }
-        
-        // Add description if available
-        if (event.description && event.description.trim()) {
-          const descriptionText = document.createElement('div');
-          descriptionText.classList.add('event-description');
-          descriptionText.textContent = truncateText(event.description, 150);
-          eventItem.appendChild(descriptionText);
         }
 
         dayDiv.appendChild(eventItem);
       });
     } else {
-      // No events for this day
       const noEvents = document.createElement('div');
       noEvents.classList.add('no-events');
       noEvents.textContent = 'No events scheduled';
@@ -427,23 +336,21 @@ function renderWeekCalendar(events) {
     container.appendChild(dayDiv);
   }
   
-  // Hide loading indicator and show calendar
   loadingIndicator.style.display = 'none';
   container.style.display = 'grid';
 }
 
-// Main function to initialize the calendar
 async function initCalendar() {
   try {
     const events = await fetchEventData();
     renderWeekCalendar(events);
   } catch (error) {
     console.error('Failed to initialize calendar:', error);
-    document.getElementById('loading-indicator').textContent = 'Failed to load events. Please try again later.';
+    document.getElementById('loading-indicator').textContent = 
+      'Failed to load events. Please try again later.';
   }
 }
 
-// Start the application when DOM is loaded
 document.addEventListener('DOMContentLoaded', initCalendar);
 </script>
 
