@@ -2,6 +2,8 @@
 <html>
 <head>
 <title>Scheduled Events</title>
+
+<!-- CSS -->
 <style>
 :root {
   --bg-gradient: linear-gradient(135deg, #1a1f2c 0%, #2c3e50 100%);
@@ -176,10 +178,11 @@ h1 {
 <div id="week-info" class="week-info"></div>
 <div id="loading-indicator">Loading events...</div>
 <div class="calendar-container" id="calendar-container" style="display: none;">
-  <!-- Days will be inserted here -->
 </div>
 
+<!-- Javascript -->
 <script>
+// Loads data from file "events.json" and renders a weekly calendar view of events
 async function fetchEventData() {
   try {
     const response = await fetch('events.json');
@@ -190,6 +193,7 @@ async function fetchEventData() {
     return data.postedEvents || [];
   } catch (error) {
     console.error('Error loading events:', error);
+    // If you want to debug, you can load sample data here in the catch return statement
     return [];
   }
 }
